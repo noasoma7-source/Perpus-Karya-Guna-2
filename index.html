@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#064a3b">
+  <title>Perpustakaan Karya Guna 2 Bekasi</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main id="app"></main>
+
+  <dialog id="add-book-dialog">
+    <form class="dialog-content" id="add-book-form">
+      <h2>Tambah buku</h2>
+      <div class="field">
+        <label for="new-title">Judul buku</label>
+        <input id="new-title" name="title" required placeholder="Masukkan judul buku">
+      </div>
+      <div class="field">
+        <label for="new-author">Penulis</label>
+        <input id="new-author" name="author" required placeholder="Nama penulis">
+      </div>
+      <div class="field">
+        <label for="new-category">Kategori</label>
+        <input id="new-category" name="category" required placeholder="Contoh: Fiksi">
+      </div>
+      <div class="field">
+        <label for="new-stock">Jumlah tersedia</label>
+        <input id="new-stock" name="stock" type="number" min="0" value="1" required>
+      </div>
+      <div class="dialog-actions">
+        <button class="secondary-button" type="button" id="cancel-add">Batal</button>
+        <button class="primary-button" type="submit">Simpan buku</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="record-dialog">
+    <form class="dialog-content" id="record-form">
+      <h2 id="record-dialog-title">Tambah data</h2>
+      <div id="record-dialog-fields"></div>
+      <div class="dialog-actions">
+        <button class="secondary-button" type="button" id="cancel-record">Batal</button>
+        <button class="primary-button" type="submit">Simpan</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
