@@ -353,13 +353,13 @@ const app = document.querySelector("#app");
       return `<div class="page-stack"><div class="two-column">
         ${isAdmin ? `<section class="content-card form-card"><h2>Formulir Peminjaman</h2><p>Isi data peminjam dan buku yang akan dipinjam.</p>
           <form id="borrow-form"><div class="form-grid">
-            <div class="field"><label for="borrower">Nama siswa</label><select id="borrower" name="studentId" required>${students.map((student) => `<option value="${student.id}">${escapeHtml(student.name)} — ${escapeHtml(student.id)}</option>`).join("")}</select></div>
+            <div class="field"><label for="borrower">Nama peminjam</label><select id="borrower" name="borrower" required>${students.length ? `<optgroup label="Siswa">${students.map((student) => `<option value="${escapeHtml(`siswa:${student.id}`)}">${escapeHtml(student.name)} — ${escapeHtml(student.id)}</option>`).join("")}</optgroup>` : ""}${teachers.length ? `<optgroup label="Guru">${teachers.map((teacher) => `<option value="${escapeHtml(`guru:${teacher.id}`)}">${escapeHtml(teacher.name)} — ${escapeHtml(teacher.id)}</option>`).join("")}</optgroup>` : ""}</select></div>
             <div class="field"><label for="borrow-book">Pilih buku</label><select id="borrow-book" name="bookTitle" required>${availableBooks.map((book) => `<option value="${escapeHtml(book.title)}">${escapeHtml(book.title)} (${book.stock} tersedia)</option>`).join("")}</select></div>
             <div class="field"><label for="borrow-date">Tanggal pinjam</label><input id="borrow-date" name="date" type="date" value="${today()}" required></div>
             <div class="field"><label for="due-date">Batas pengembalian</label><input id="due-date" name="dueDate" type="date" value="${dateAfter(7)}" required></div>
           </div><button class="primary-button" type="submit">Catat Peminjaman</button></form>
         </section>` : `<aside class="notice-card"><strong>Peminjaman dikelola Admin</strong>Hubungi petugas perpustakaan untuk mencatat peminjaman buku.</aside>`}
-        <aside class="notice-card"><strong>Informasi peminjaman</strong>Masa peminjaman standar adalah 7 hari. Pastikan data siswa dan judul buku sudah benar sebelum menyimpan transaksi.</aside>
+        <aside class="notice-card"><strong>Informasi peminjaman</strong>Masa peminjaman standar adalah 7 hari. Pastikan data peminjam (siswa/guru) dan judul buku sudah benar sebelum menyimpan transaksi.</aside>
       </div>
       <article class="content-card"><div class="content-card-head"><div><h2>Peminjaman Aktif</h2><p>Daftar pinjaman yang belum dikembalikan</p></div></div>${loanTable(loans.filter((loan) => loan.status === "Dipinjam"), false)}</article></div>`;
     }
@@ -481,15 +481,18 @@ const app = document.querySelector("#app");
       if (borrowForm) borrowForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         const data = new FormData(borrowForm);
-        const student = students.find((item) => item.id === data.get("studentId"));
+        const [borrowerType, ...borrowerIdParts] = String(data.get("borrower") || "").split(":");
+        const borrowerId = borrowerIdParts.join(":");
+        const borrowerList = borrowerType === "guru" ? teachers : borrowerType === "siswa" ? students : [];
+        const borrower = borrowerList.find((item) => item.id === borrowerId);
         const book = books.find((item) => item.title === data.get("bookTitle") && item.stock > 0);
-        if (!student || !book) {
-          alert("Data siswa atau ketersediaan buku berubah. Muat ulang pilihan dan coba lagi.");
+        if (!borrower || !book) {
+          alert("Data peminjam atau ketersediaan buku berubah. Muat ulang pilihan dan coba lagi.");
           return;
         }
         const before = snapshotData();
         book.stock -= 1;
-        loans.unshift({ id: `P-2026-${String(nextLoanNumber++).padStart(3, "0")}`, borrower: student.name, studentId: student.id, bookTitle: book.title, date: data.get("date"), dueDate: data.get("dueDate"), status: "Dipinjam" });
+        loans.unshift({ id: `P-2026-${String(nextLoanNumber++).padStart(3, "0")}`, borrower: borrower.name, borrowerType: borrowerType === "guru" ? "Guru" : "Siswa", ...(borrowerType === "guru" ? { teacherId: borrower.id } : { studentId: borrower.id }), bookTitle: book.title, date: data.get("date"), dueDate: data.get("dueDate"), status: "Dipinjam" });
         if (!(await saveChanges(before))) return;
         renderApp();
       });
